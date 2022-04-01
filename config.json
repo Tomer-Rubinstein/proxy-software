@@ -1,0 +1,6 @@
+{
+  "logging": "false",
+  "restrict": [
+    "info.cern.c"
+  ]
+}

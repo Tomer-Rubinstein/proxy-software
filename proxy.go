@@ -7,12 +7,18 @@ import (
 	"io"
 	"os"
 	"time"
+	"encoding/json"
 )
 
+type Config struct {
+	Logging	string
+	Restrict []string
+}
+var config Config
 
-var restrictedUrls []string = []string{"info.cern.c"}
 
 func main(){
+	readConfig("config.json")
 	http.HandleFunc("/", sendRequest)
 
 	http.ListenAndServe(":8000", nil)
@@ -20,9 +26,11 @@ func main(){
 
 
 func sendRequest(w http.ResponseWriter, req *http.Request){
-	log(req.Host, req.RemoteAddr)
+	if config.Logging == "true" {
+		log(req.Host, req.RemoteAddr)
+	}
 
-	for _, s := range restrictedUrls {
+	for _, s := range config.Restrict {
 		if s == req.Host {
 			fmt.Fprintf(w, "Website cannot be accessed :(")
 			return
@@ -66,4 +74,13 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+// func readConfig reads & parses config.json to the config(typeof Config) struct
+func readConfig(filename string) {
+	data, err := os.ReadFile(filename)
+	check(err)
+
+	err = json.Unmarshal(data, &config)
+	check(err)
 }
